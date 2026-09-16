@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ua">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workout tracker</title>
+</head>
+<body>
+
+    <header>
+        <h1>Трекер тренувань</h1>
+    </header>
+
+    <main>
+
+            <section id = "add-workout">
+                <h2>Додати тренування</h2> 
+                
+                <form>
+                        <p>
+                            <label for="workout-date">Дата тренування:</label>
+                            <input
+                                type="date"
+                                id="workout-date"
+                                name="workout_date"
+                                required
+                            >
+                        </p>
+
+                        <p>
+                            <label for = "workout-type">Тип тренування:</label>
+                            <input
+                                type="text"
+                                id="workout-type"
+                                name="workout_type"
+                                placeholder="Введіть тип тренувань"
+                                required
+                            >
+                        </p>
+
+                        <p>
+                            <label for="workout-duration">Тривалість тренування у хвилинах</label>
+                            <input
+                                type="number"
+                                id="workout-duration"
+                                name="workout_duration"
+                                min="1"
+                                step="1"
+                                required
+                            >
+                        </p>
+                    
+                        <button type="button">Додати тренування</button>
+                </form>     
+            </section>
+
+            <section id="workout-history">
+                <h2>Історія тренувань</h2>
+
+                <article>
+                    <h3>13.09.2026 - Жим лежачи</h3>
+
+                    <p>Тривалість: 45 хвилин</p>
+                </article>
+
+                <article>
+                    <h3>14.09.2026 - Пробіжка</h3>
+
+                    <p>Тривалість: 120 хвилин</p>
+                </article>
+            </section>
+    </main>
+
+    <aside>
+        <h2>Статистика тренувань</h2>
+
+        <p>Кількість тренувань :2</p>
+        <p>Загальний час: 165 хвилин</p>
+    </aside>
+
+    <footer>
+        <p>Автор: Тимофій Наконечний AKA Chambo</p>
+        <P>Навчальний проєкт, 2026 рік</P>
+    </footer>
+</body>
+</html>

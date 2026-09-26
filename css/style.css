@@ -1,0 +1,147 @@
+.workoput-card {
+    padding: 14px;
+}
+
+*, *::before, *::after {
+    box-sizing:border-box;
+}
+
+body {
+    margin: 0;
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #f5f5f5;
+    background-color: #151515
+}
+
+header {
+    padding: 24px;
+    background-color: #080808;
+    border-bottom: 2px solid #ff8c00;
+}
+
+h1 {
+    margin: 0;
+    font-size: 2rem;
+    color: #ff8c00
+}
+
+main, aside {
+    width: 92%;
+    max-width: 900px;
+    margin: 24px auto;
+}
+
+main {
+    padding: 16px;
+}
+
+section {
+    margin-bottom: 24px;
+}
+
+#workout-history {
+    margin-bottom: 0;
+}
+
+h2 {
+    margin: 0 0 16px;
+}
+
+form {
+    padding: 20px;
+    border: 1px solid #666666;
+    border-radius: 6px;
+    background-color: #222222;
+}
+
+form p {
+    margin: 0 0 16px;
+}
+
+form label {
+    display: block;
+    margin-bottom: 6px;
+}
+
+input, button {
+    font: inherit;
+}
+
+form input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #777777;
+    border-radius: 4px;
+    background-color: #ffffff;
+    color: #222222;
+}
+
+button {                       
+    padding: 12px 20px;         
+    border: 1px solid #ff8c00;  
+    border-radius: 6px;        
+    background-color: #ff8c00; 
+    color: #111111;            
+    font-weight: 700;          
+    cursor: pointer;          
+}
+
+button:hover {                
+    background-color: #e87900; 
+}
+
+input:focus, button:focus-visible { 
+    outline: 2px solid #ffb347;     
+    outline-offset: 2px;           
+}
+
+
+/* КАРТКИ ТРЕНУВАНЬ */
+
+.workout-card {                        
+    padding: 14px;                   
+    margin-bottom: 16px;              
+    border-radius: 10px;              
+    background-color: #272727;       
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35); 
+}
+
+.workout-card h3 {             
+    margin: 0 0 10px;         
+    font-size: 1.125rem;        
+}
+
+.workout-card p {               
+    margin: 0;                
+}
+
+.workout-icon {                 
+    display: inline-block;     
+    padding: 4px 8px;          
+    margin-right: 8px;         
+    border-radius: 6px;       
+    background-color: #4a3015; 
+}
+
+aside {                               
+    padding: 20px;                    
+    border: 1px solid #ff8c00;         
+    border-radius: 6px;               
+    background-color: #25211c;         
+}
+
+.stat-number {                 
+    font-size: 1.8rem;         
+    font-weight: 700;          
+    color: #ff8c00;           
+}
+
+footer {                      
+    padding: 20px 16px;         
+    background-color: #080808; 
+    color: #bdbdbd;            
+    font-size: 0.875rem;        
+    text-align: center;       
+}

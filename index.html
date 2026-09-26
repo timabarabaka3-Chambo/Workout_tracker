@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Workout tracker</title>
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
@@ -57,14 +58,23 @@
             <section id="workout-history">
                 <h2>Історія тренувань</h2>
 
-                <article>
-                    <h3>13.09.2026 - Жим лежачи</h3>
+                    <article class="workout-card">
+                        
+                        <h3>
+                            <span class="workout-icon" aria-hidden="true">🏋️</span>
 
-                    <p>Тривалість: 45 хвилин</p>
-                </article>
+                            13.09.2026 - Жим лежачи
+                        </h3>
 
-                <article>
-                    <h3>14.09.2026 - Пробіжка</h3>
+                        <p>Тривалість: 45 хвилин</p>
+                    </article>
+
+                <article class="workout-card">
+                    <h3>
+                        <span class="workout-icon" aria-hidden="true">🏃</span>
+
+                        14.09.2026 - Пробіжка
+                    </h3>
 
                     <p>Тривалість: 120 хвилин</p>
                 </article>
@@ -74,8 +84,8 @@
     <aside>
         <h2>Статистика тренувань</h2>
 
-        <p>Кількість тренувань :2</p>
-        <p>Загальний час: 165 хвилин</p>
+        <p>Кількість тренувань: <span class="stat-number">2</span></p>
+        <p>Загальний час: <span class="stat-number">165</span>хвилин</p>
     </aside>
 
     <footer>

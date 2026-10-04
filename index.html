@@ -8,11 +8,18 @@
 </head>
 <body>
 
-    <header>
+    <header class="site-header">
         <h1>Трекер тренувань</h1>
+
+        <nav class="site-nav" aria-label="Основна навігація">
+            <a href="#add-workout">Додати тренування</a>
+            <a href="#workout-history">Історія тренувань</a>
+        </nav>
     </header>
 
-    <main>
+    <div class="layout">
+
+        <main>
 
             <section id = "add-workout">
                 <h2>Додати тренування</h2> 
@@ -57,7 +64,8 @@
 
             <section id="workout-history">
                 <h2>Історія тренувань</h2>
-
+                
+                <div class="cards">
                     <article class="workout-card">
                         
                         <h3>
@@ -69,24 +77,27 @@
                         <p>Тривалість: 45 хвилин</p>
                     </article>
 
-                <article class="workout-card">
-                    <h3>
-                        <span class="workout-icon" aria-hidden="true">🏃</span>
+                    <article class="workout-card">
+                            <h3>
+                            <span class="workout-icon" aria-hidden="true">🏃</span>
 
-                        14.09.2026 - Пробіжка
-                    </h3>
+                            14.09.2026 - Пробіжка
+                            </h3>
 
-                    <p>Тривалість: 120 хвилин</p>
-                </article>
+                        <p>Тривалість: 120 хвилин</p>
+                    </article>
+                </div>
             </section>
-    </main>
+        </main>
 
-    <aside>
-        <h2>Статистика тренувань</h2>
+        <aside>
+            <h2>Статистика тренувань</h2>
 
-        <p>Кількість тренувань: <span class="stat-number">2</span></p>
+            <p>Кількість тренувань: <span class="stat-number">2</span></p>
         <p>Загальний час: <span class="stat-number">165</span>хвилин</p>
-    </aside>
+        </aside>
+
+    </div>
 
     <footer>
         <p>Автор: Тимофій Наконечний AKA Chambo</p>

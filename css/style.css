@@ -27,10 +27,20 @@ h1 {
     color: #ff8c00
 }
 
-main, aside {
-    width: 92%;
-    max-width: 900px;
-    margin: 24px auto;
+.layout {
+    width: 92%;             
+    max-width: 900px;       
+    margin: 24px auto;      
+
+    display: grid;         
+    grid-template-columns: 1fr;
+    gap: 24px;             
+    align-items: start;    
+}
+
+main,
+aside {
+    min-width: 0; 
 }
 
 main {
@@ -98,7 +108,7 @@ input:focus, button:focus-visible {
 }
 
 
-/* КАРТКИ ТРЕНУВАНЬ */
+
 
 .workout-card {                        
     padding: 14px;                   
@@ -144,4 +154,80 @@ footer {
     color: #bdbdbd;            
     font-size: 0.875rem;        
     text-align: center;       
+}
+
+
+.site-header {
+    display: flex;
+    flex-direction: column; 
+    align-items: flex-start;
+    flex-wrap: wrap;         
+    gap: 16px;
+}
+
+
+.site-nav {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.site-nav a {
+    color: #ff8c00;
+}
+
+
+.cards {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+.workout-card {
+    margin-bottom: 0;         
+    min-width: 0;
+    overflow-wrap: anywhere;  
+
+
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+
+@media (min-width: 600px) {
+    .site-header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .site-nav {
+        flex-direction: row; 
+    }
+
+    .cards {
+        
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+
+@media (min-width: 1024px) {
+    .layout {
+        max-width: 1280px;
+
+        
+        grid-template-columns: 3fr 1fr;
+
+        gap: 32px;
+    }
+
+    .cards {
+        
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
 }

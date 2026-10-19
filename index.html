@@ -90,11 +90,43 @@
             </section>
         </main>
 
-        <aside>
+        <aside class="workout-stats">
             <h2>Статистика тренувань</h2>
 
             <p>Кількість тренувань: <span class="stat-number">2</span></p>
-        <p>Загальний час: <span class="stat-number">165</span>хвилин</p>
+            <p>Загальний час: <span class="stat-number">165</span>хвилин</p>
+
+            <section class="progress-section">
+                <h3>Прогрес тренувань</h3>
+
+                <label for="training-progress" class="progress-label">
+                    Виконано 2 із 4-х тренувань
+                </label>
+
+                <progress
+                    id="training-progress"
+                    class="progress-bar"
+                    value="2"
+                    max="4"
+                >
+                    50%
+                </progress>
+
+                <p class="progress-caption">
+                    План виконано на <strong>50%</strong>.
+                    Продовжуй у своєму темпі!
+                </p>
+
+            </section>
+
+            <section class="achievement">
+                <h3>Твоє досягнення</h3>
+
+                <p>
+                    Найдовше тренування:
+                    <strong class="record-value">120 хв</strong>
+                </p>
+            </section>
         </aside>
 
     </div>
@@ -105,4 +137,3 @@
     </footer>
 </body>
 </html>
-

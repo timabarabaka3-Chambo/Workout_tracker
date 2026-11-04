@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Workout tracker</title>
     <link rel="stylesheet" href="css/style.css">
-    <script src=".js/script.js" defer></script>
+    <script src="js/script.js" defer></script>
 </head>
 <body>
 
@@ -66,7 +66,8 @@
             <section id="workout-history">
                 <h2>Історія тренувань</h2>
                 
-                <div class="cards">
+                <div class="cards" id="workouts-list">
+                    <!-- Статичні приклади: script.js видаляє їх і створює картки з масиву. -->
                     <article class="workout-card">
                         
                         <h3>
@@ -94,13 +95,14 @@
         <aside class="workout-stats">
             <h2>Статистика тренувань</h2>
 
-            <p>Кількість тренувань: <span class="stat-number">2</span></p>
-            <p>Загальний час: <span class="stat-number">165</span>хвилин</p>
+            <p>Кількість тренувань: <span class="stat-number" id="workouts-count">2</span></p>
+            <p>Загальний час: <span class="stat-number" id="total-minutes">165</span> хвилин</p>
+            <p id="total-calories" class="calories-total" aria-live="polite">Спалено калорій: —</p>
 
             <section class="progress-section">
                 <h3>Прогрес тренувань</h3>
 
-                <label for="training-progress" class="progress-label">
+                <label for="training-progress" class="progress-label" id="progress-label">
                     Виконано 2 із 4-х тренувань
                 </label>
 
@@ -114,7 +116,7 @@
                 </progress>
 
                 <p class="progress-caption">
-                    План виконано на <strong>50%</strong>.
+                    План виконано на <strong id="progress-percent">50%</strong>.
                     Продовжуй у своєму темпі!
                 </p>
 

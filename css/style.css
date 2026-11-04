@@ -332,3 +332,24 @@ form input::placeholder {
     color: #595959;
     opacity: 1;
 }
+
+
+.workout-card.short {
+    border-left: 4px solid #bdbdbd;
+}
+
+.workout-card.long {
+    border-left: 4px solid #ff8c00;
+}
+
+.workout-card .workout-duration-label {
+    margin-top: 10px;
+    font-size: 0.875rem;
+    color: #bdbdbd;
+}
+
+.workout-card.long .workout-duration-label,
+.calories-total {
+    color: #ffb347;
+    font-weight: 700;
+}

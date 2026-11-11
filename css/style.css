@@ -74,11 +74,12 @@ form label {
     margin-bottom: 6px;
 }
 
-input, button {
+input, select, button {
     font: inherit;
 }
 
-form input {
+form input,
+form select {
     width: 100%;
     padding: 10px 12px;
     border: 1px solid #777777;
@@ -101,7 +102,7 @@ button:hover {
     background-color: #e87900; 
 }
 
-input:focus, button:focus-visible { 
+input:focus, select:focus, button:focus-visible {
     outline: 2px solid #ffb347;     
     outline-offset: 2px;           
 }
@@ -352,4 +353,40 @@ form input::placeholder {
 .calories-total {
     color: #ffb347;
     font-weight: 700;
+}
+
+.field-hint,
+.field-error {
+    display: block;
+    margin-top: 6px;
+}
+
+.field-hint {
+    color: #bdbdbd;
+}
+
+.field-error {
+    color: #ffb4a9;
+}
+
+.field-error:empty,
+.form-status:empty {
+    display: none;
+}
+
+.workout-preview output {
+    color: #ffb347;
+    font-weight: 700;
+}
+
+form .form-status {
+    margin: 16px 0 0;
+    color: #b7e3b1;
+}
+
+.workout-card time {
+    display: block;
+    margin-top: 10px;
+    color: #bdbdbd;
+    font-size: 0.875rem;
 }

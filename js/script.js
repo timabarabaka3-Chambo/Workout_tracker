@@ -5,8 +5,8 @@ console.log('script.js підключено');
 // Практична робота №6, варіант 19: трекер тренувань.
 // Тривалість відповідає карткам на сторінці, калорії — навчальні дані.
 const workouts = [
-    { type: 'Жим лежачи', icon: '🏋️', minutes: 45, calories: 270 },
-    { type: 'Пробіжка', icon: '🏃', minutes: 120, calories: 960 }
+    { type: 'Жим лежачи', icon: '🏋️', date: '2026-09-13', minutes: 45, calories: 270 },
+    { type: 'Пробіжка', icon: '🏃', date: '2026-09-14', minutes: 120, calories: 960 }
 ];
 
 const listContainer = document.querySelector('#workouts-list');
@@ -84,6 +84,12 @@ function renderWorkouts(workoutList) {
         }
 
         card.append(title, details, durationLabel);
+        if (workout.date) {
+            const date = document.createElement('time');
+            date.dateTime = workout.date;
+            date.textContent = workout.date.split('-').reverse().join('.');
+            card.append(date);
+        }
         listContainer.append(card);
 
         totalCalories += workout.calories;
@@ -108,3 +114,60 @@ function renderWorkouts(workoutList) {
 }
 
 renderWorkouts(workouts);
+
+const form = document.querySelector('#workout-form');
+const dateInput = document.querySelector('#workout-date');
+const typeInput = document.querySelector('#workout-type');
+const minutesInput = document.querySelector('#workout-duration');
+const caloriesInput = document.querySelector('#workout-calories');
+const caloriesError = document.querySelector('#calories-error');
+const caloriesPreview = document.querySelector('#calories-preview');
+const formStatus = document.querySelector('#form-status');
+
+// На input перевіряє межі калорій і перераховує ккал/хв до надсилання форми.
+function updateWorkoutPreview() {
+    const minutes = Number(minutesInput.value);
+    const calories = Number(caloriesInput.value);
+    let errorMessage = '';
+
+    if (caloriesInput.value !== '' && (calories < 1 || calories > 2000)) {
+        errorMessage = 'Кількість калорій має бути від 1 до 2000 ккал.';
+    }
+
+    caloriesInput.setCustomValidity(errorMessage);
+    caloriesError.textContent = errorMessage;
+    caloriesInput.setAttribute('aria-invalid', String(!caloriesInput.validity.valid));
+
+    if (minutesInput.validity.valid && caloriesInput.validity.valid) {
+        caloriesPreview.textContent = `${caloriesPerMinute({ minutes, calories })} ккал/хв`;
+    } else {
+        caloriesPreview.textContent = '—';
+    }
+    formStatus.textContent = '';
+}
+
+minutesInput.addEventListener('input', updateWorkoutPreview);
+caloriesInput.addEventListener('input', updateWorkoutPreview);
+
+// На submit додає перевірені дані до масиву, оновлює картки й очищує форму.
+form.addEventListener('submit', event => {
+    event.preventDefault();
+    updateWorkoutPreview();
+    if (!form.reportValidity()) {
+        return;
+    }
+
+    const workout = {
+        type: typeInput.value,
+        icon: typeInput.selectedOptions[0].dataset.icon,
+        date: dateInput.value,
+        minutes: Number(minutesInput.value),
+        calories: Number(caloriesInput.value)
+    };
+
+    workouts.push(workout);
+    renderWorkouts(workouts);
+    form.reset();
+    updateWorkoutPreview();
+    formStatus.textContent = `Тренування «${workout.type}» додано.`;
+});

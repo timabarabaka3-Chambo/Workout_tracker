@@ -25,7 +25,7 @@
             <section id = "add-workout">
                 <h2>Додати тренування</h2> 
                 
-                <form>
+                <form id="workout-form">
                         <p>
                             <label for="workout-date">Дата тренування:</label>
                             <input
@@ -38,13 +38,14 @@
 
                         <p>
                             <label for = "workout-type">Тип тренування:</label>
-                            <input
-                                type="text"
-                                id="workout-type"
-                                name="workout_type"
-                                placeholder="Введіть тип тренувань"
-                                required
-                            >
+                            <select id="workout-type" name="workout_type" required>
+                                <option value="" selected disabled>Оберіть тип тренування</option>
+                                <option value="Жим лежачи" data-icon="🏋️">Жим лежачи</option>
+                                <option value="Пробіжка" data-icon="🏃">Пробіжка</option>
+                                <option value="Велотренування" data-icon="🚴">Велотренування</option>
+                                <option value="Плавання" data-icon="🏊">Плавання</option>
+                                <option value="Йога" data-icon="🧘">Йога</option>
+                            </select>
                         </p>
 
                         <p>
@@ -59,7 +60,29 @@
                             >
                         </p>
                     
-                        <button type="button">Додати тренування</button>
+                        <p>
+                            <label for="workout-calories">Спалені калорії:</label>
+                            <input
+                                type="number"
+                                id="workout-calories"
+                                name="workout_calories"
+                                min="1"
+                                max="2000"
+                                step="1"
+                                aria-describedby="calories-hint calories-error"
+                                required
+                            >
+                            <small id="calories-hint" class="field-hint">Від 1 до 2000 ккал.</small>
+                            <span id="calories-error" class="field-error" aria-live="polite"></span>
+                        </p>
+
+                        <p class="workout-preview">
+                            Калорії за хвилину:
+                            <output id="calories-preview" for="workout-duration workout-calories" aria-live="polite">—</output>
+                        </p>
+
+                        <button type="submit">Додати тренування</button>
+                        <p id="form-status" class="form-status" role="status"></p>
                 </form>     
             </section>
 
@@ -140,4 +163,3 @@
     </footer>
 </body>
 </html>
-

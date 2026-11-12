@@ -15,6 +15,7 @@
         <nav class="site-nav" aria-label="Основна навігація">
             <a href="#add-workout">Додати тренування</a>
             <a href="#workout-history">Історія тренувань</a>
+            <a href="#api-journal">Журнал вправ</a>
         </nav>
     </header>
 
@@ -112,6 +113,16 @@
                         <p>Тривалість: 120 хвилин</p>
                     </article>
                 </div>
+            </section>
+
+            <section id="api-journal">
+                <h2>Журнал вправ з API</h2>
+                <p class="api-description">Навчальні записи з JSONPlaceholder: назва вправи та стан виконання.</p>
+                <button type="button" id="refresh-workouts">Оновити</button>
+                <p id="api-loading" class="api-message" role="status" hidden>Завантаження журналу…</p>
+                <p id="api-error" class="api-error" role="alert" hidden></p>
+                <p id="api-status" class="api-message" role="status"></p>
+                <div id="api-workouts-list" class="cards" aria-busy="false"></div>
             </section>
         </main>
 

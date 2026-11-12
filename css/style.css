@@ -1,4 +1,3 @@
-
 *, *::before, *::after {
     box-sizing:border-box;
 }
@@ -389,4 +388,44 @@ form .form-status {
     margin-top: 10px;
     color: #bdbdbd;
     font-size: 0.875rem;
+}
+
+#api-journal {
+    margin: 28px 0 0;
+    padding-top: 24px;
+    border-top: 1px solid #666666;
+}
+
+.api-description,
+.api-message {
+    color: #bdbdbd;
+}
+
+.api-error {
+    color: #ffb4a9;
+}
+
+#api-workouts-list {
+    margin-top: 16px;
+}
+
+.workout-card.completed {
+    border-left: 4px solid #b7e3b1;
+}
+
+.workout-card.completed .workout-status {
+    color: #b7e3b1;
+}
+
+.workout-card.pending {
+    border-left: 4px solid #ff8c00;
+}
+
+.workout-card.pending .workout-status {
+    color: #ffb347;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: wait;
 }

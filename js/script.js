@@ -1,5 +1,7 @@
 'use strict';
 
+const API_URL = 'https://jsonplaceholder.typicode.com/todos?userId=4';
+
 console.log('script.js підключено');
 
 // Практична робота №6, варіант 19: трекер тренувань.
@@ -49,8 +51,8 @@ function analyzeWorkouts(workoutList) {
 analyzeWorkouts(workouts);
 
 // Створює картки з масиву та оновлює статистику; повторний виклик не дублює картки.
-function renderWorkouts(workoutList) {
-    listContainer.innerHTML = '';
+function renderWorkouts(workoutList, container = listContainer) {
+    container.innerHTML = '';
     let totalCalories = 0;
     let totalMinutes = 0;
     let longestWorkout = 0;
@@ -58,7 +60,6 @@ function renderWorkouts(workoutList) {
     for (const workout of workoutList) {
         const card = document.createElement('article');
         card.classList.add('workout-card');
-        card.dataset.calories = workout.calories;
 
         const title = document.createElement('h3');
         title.textContent = workout.type;
@@ -70,33 +71,51 @@ function renderWorkouts(workoutList) {
             title.prepend(icon, ' ');
         }
 
-        const details = document.createElement('p');
-        details.textContent = `${workout.minutes} хв, ${workout.calories} ккал`;
+        card.append(title);
 
-        const durationLabel = document.createElement('p');
-        durationLabel.classList.add('workout-duration-label');
-        if (workout.minutes < longWorkoutMinutes) {
-            card.classList.add('short');
-            durationLabel.textContent = 'Коротке тренування';
+        if (typeof workout.completed === 'boolean') {
+            card.dataset.id = workout.id;
+            card.dataset.completed = workout.completed;
+            card.classList.add(workout.completed ? 'completed' : 'pending');
+
+            const status = document.createElement('p');
+            status.classList.add('workout-status');
+            status.textContent = workout.completed ? 'Виконано' : 'Не виконано';
+            card.append(status);
         } else {
-            card.classList.add('long');
-            durationLabel.textContent = 'Довге тренування';
-        }
+            card.dataset.calories = workout.calories;
+            const details = document.createElement('p');
+            details.textContent = `${workout.minutes} хв, ${workout.calories} ккал`;
 
-        card.append(title, details, durationLabel);
-        if (workout.date) {
-            const date = document.createElement('time');
-            date.dateTime = workout.date;
-            date.textContent = workout.date.split('-').reverse().join('.');
-            card.append(date);
-        }
-        listContainer.append(card);
+            const durationLabel = document.createElement('p');
+            durationLabel.classList.add('workout-duration-label');
+            if (workout.minutes < longWorkoutMinutes) {
+                card.classList.add('short');
+                durationLabel.textContent = 'Коротке тренування';
+            } else {
+                card.classList.add('long');
+                durationLabel.textContent = 'Довге тренування';
+            }
 
-        totalCalories += workout.calories;
-        totalMinutes += workout.minutes;
-        if (workout.minutes > longestWorkout) {
-            longestWorkout = workout.minutes;
+            card.append(details, durationLabel);
+            if (workout.date) {
+                const date = document.createElement('time');
+                date.dateTime = workout.date;
+                date.textContent = workout.date.split('-').reverse().join('.');
+                card.append(date);
+            }
+
+            totalCalories += workout.calories;
+            totalMinutes += workout.minutes;
+            if (workout.minutes > longestWorkout) {
+                longestWorkout = workout.minutes;
+            }
         }
+        container.append(card);
+    }
+
+    if (container !== listContainer) {
+        return;
     }
 
     document.querySelector('#total-calories').textContent = `Спалено калорій: ${totalCalories} ккал`;
@@ -171,3 +190,59 @@ form.addEventListener('submit', event => {
     updateWorkoutPreview();
     formStatus.textContent = `Тренування «${workout.type}» додано.`;
 });
+
+const apiListContainer = document.querySelector('#api-workouts-list');
+const refreshButton = document.querySelector('#refresh-workouts');
+const apiLoading = document.querySelector('#api-loading');
+const apiError = document.querySelector('#api-error');
+const apiStatus = document.querySelector('#api-status');
+
+// Отримує журнал із JSONPlaceholder: https://jsonplaceholder.typicode.com/todos?userId=4
+async function loadApiWorkouts() {
+    refreshButton.disabled = true;
+    apiLoading.hidden = false;
+    apiError.hidden = true;
+    apiError.textContent = '';
+    apiStatus.textContent = '';
+    apiListContainer.setAttribute('aria-busy', 'true');
+
+    try {
+        const response = await fetch(API_URL, { cache: 'no-store' });
+        if (!response.ok) {
+            throw new Error(`Помилка HTTP: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('Журнал тренувань з API:', data);
+        if (!Array.isArray(data) || !data.every(item =>
+            item !== null && typeof item.title === 'string' && typeof item.completed === 'boolean'
+        )) {
+            throw new Error('API повернув неочікуваний формат журналу тренувань.');
+        }
+
+        const apiWorkouts = data.map(item => ({
+            id: item.id,
+            type: item.title,
+            completed: item.completed,
+            icon: item.completed ? '✅' : '⏳'
+        }));
+        renderWorkouts(apiWorkouts, apiListContainer);
+        apiStatus.textContent = apiWorkouts.length > 0
+            ? `Завантажено вправ: ${apiWorkouts.length}.`
+            : 'Журнал тренувань порожній.';
+    } catch (error) {
+        apiError.textContent = error instanceof TypeError
+            ? 'Журнал тренувань недоступний офлайн'
+            : 'Не вдалося завантажити журнал тренувань. Спробуйте ще раз.';
+        apiError.hidden = false;
+        console.error('Помилка завантаження журналу тренувань:', error);
+    } finally {
+        refreshButton.disabled = false;
+        apiLoading.hidden = true;
+        apiListContainer.setAttribute('aria-busy', 'false');
+    }
+}
+
+// Повторює запит після натискання кнопки без перезавантаження сторінки.
+refreshButton.addEventListener('click', loadApiWorkouts);
+loadApiWorkouts();

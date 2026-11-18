@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Workout tracker</title>
     <link rel="stylesheet" href="css/style.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.js" defer></script>
     <script src="js/script.js" defer></script>
 </head>
 <body>
@@ -19,33 +20,30 @@
         </nav>
     </header>
 
-    <div class="layout">
+    <div class="layout" id="app" v-cloak>
 
         <main>
 
             <section id = "add-workout">
                 <h2>Додати тренування</h2> 
                 
-                <form id="workout-form">
+                <form id="workout-form" @submit.prevent="addWorkout" @input="formStatus = ''">
                         <p>
                             <label for="workout-date">Дата тренування:</label>
                             <input
                                 type="date"
                                 id="workout-date"
                                 name="workout_date"
+                                v-model="draft.date"
                                 required
                             >
                         </p>
 
                         <p>
                             <label for = "workout-type">Тип тренування:</label>
-                            <select id="workout-type" name="workout_type" required>
-                                <option value="" selected disabled>Оберіть тип тренування</option>
-                                <option value="Жим лежачи" data-icon="🏋️">Жим лежачи</option>
-                                <option value="Пробіжка" data-icon="🏃">Пробіжка</option>
-                                <option value="Велотренування" data-icon="🚴">Велотренування</option>
-                                <option value="Плавання" data-icon="🏊">Плавання</option>
-                                <option value="Йога" data-icon="🧘">Йога</option>
+                            <select id="workout-type" name="workout_type" v-model="draft.type" required>
+                                <option value="" disabled>Оберіть тип тренування</option>
+                                <option v-for="item in workoutTypes" :key="item.type" :value="item.type" :data-icon="item.icon">{{ item.type }}</option>
                             </select>
                         </p>
 
@@ -55,6 +53,7 @@
                                 type="number"
                                 id="workout-duration"
                                 name="workout_duration"
+                                v-model.number="draft.minutes"
                                 min="1"
                                 step="1"
                                 required
@@ -67,6 +66,10 @@
                                 type="number"
                                 id="workout-calories"
                                 name="workout_calories"
+                                ref="caloriesInput"
+                                v-model.number="draft.calories"
+                                @input="validateCalories"
+                                :aria-invalid="Boolean(caloriesError)"
                                 min="1"
                                 max="2000"
                                 step="1"
@@ -74,16 +77,16 @@
                                 required
                             >
                             <small id="calories-hint" class="field-hint">Від 1 до 2000 ккал.</small>
-                            <span id="calories-error" class="field-error" aria-live="polite"></span>
+                            <span id="calories-error" class="field-error" aria-live="polite">{{ caloriesError }}</span>
                         </p>
 
                         <p class="workout-preview">
                             Калорії за хвилину:
-                            <output id="calories-preview" for="workout-duration workout-calories" aria-live="polite">—</output>
+                            <output id="calories-preview" for="workout-duration workout-calories" aria-live="polite">{{ caloriesPreview }}</output>
                         </p>
 
                         <button type="submit">Додати тренування</button>
-                        <p id="form-status" class="form-status" role="status"></p>
+                        <p id="form-status" class="form-status" role="status">{{ formStatus }}</p>
                 </form>     
             </section>
 
@@ -91,66 +94,57 @@
                 <h2>Історія тренувань</h2>
                 
                 <div class="cards" id="workouts-list">
-                    <!-- Статичні приклади: script.js видаляє їх і створює картки з масиву. -->
-                    <article class="workout-card">
-                        
-                        <h3>
-                            <span class="workout-icon" aria-hidden="true">🏋️</span>
-
-                            13.09.2026 - Жим лежачи
-                        </h3>
-
-                        <p>Тривалість: 45 хвилин</p>
-                    </article>
-
-                    <article class="workout-card">
-                            <h3>
-                            <span class="workout-icon" aria-hidden="true">🏃</span>
-
-                            14.09.2026 - Пробіжка
-                            </h3>
-
-                        <p>Тривалість: 120 хвилин</p>
-                    </article>
+                    <!-- Vue замінив ручне створення карток із практикуму №7. -->
+                    <workout-row v-for="workout in workouts" :key="workout.id"
+                                 :id="workout.id" :type="workout.type" :minutes="workout.minutes"
+                                 :calories="workout.calories" :icon="workout.icon" :date="workout.date"
+                                 @extend="extendWorkout"></workout-row>
                 </div>
             </section>
 
             <section id="api-journal">
                 <h2>Журнал вправ з API</h2>
                 <p class="api-description">Навчальні записи з JSONPlaceholder: назва вправи та стан виконання.</p>
-                <button type="button" id="refresh-workouts">Оновити</button>
-                <p id="api-loading" class="api-message" role="status" hidden>Завантаження журналу…</p>
-                <p id="api-error" class="api-error" role="alert" hidden></p>
-                <p id="api-status" class="api-message" role="status"></p>
-                <div id="api-workouts-list" class="cards" aria-busy="false"></div>
+                <button type="button" id="refresh-workouts" @click="loadApiWorkouts" :disabled="apiLoading">Оновити</button>
+                <p id="api-loading" class="api-message" role="status" v-show="apiLoading">Завантаження журналу…</p>
+                <p id="api-error" class="api-error" role="alert" v-show="apiError">{{ apiError }}</p>
+                <p id="api-status" class="api-message" role="status">{{ apiStatus }}</p>
+                <div id="api-workouts-list" class="cards" :aria-busy="apiLoading">
+                    <article v-for="item in apiWorkouts" :key="item.id" class="workout-card"
+                             :class="item.completed ? 'completed' : 'pending'"
+                             :data-id="item.id" :data-completed="item.completed">
+                        <h3><span class="workout-icon" aria-hidden="true">{{ item.completed ? '✅' : '⏳' }}</span> {{ item.title }}</h3>
+                        <p class="workout-status">{{ item.completed ? 'Виконано' : 'Не виконано' }}</p>
+                    </article>
+                </div>
             </section>
         </main>
 
         <aside class="workout-stats">
             <h2>Статистика тренувань</h2>
 
-            <p>Кількість тренувань: <span class="stat-number" id="workouts-count">2</span></p>
-            <p>Загальний час: <span class="stat-number" id="total-minutes">165</span> хвилин</p>
-            <p id="total-calories" class="calories-total" aria-live="polite">Спалено калорій: —</p>
+            <p>Кількість тренувань: <span class="stat-number" id="workouts-count">{{ workouts.length }}</span></p>
+            <p>Загальний час: <span class="stat-number" id="total-minutes">{{ totalMinutes }}</span> хвилин</p>
+            <p id="total-calories" class="calories-total" aria-live="polite">Спалено калорій: {{ totalCalories.toLocaleString('uk-UA', { maximumFractionDigits: 2 }) }} ккал</p>
 
             <section class="progress-section">
                 <h3>Прогрес тренувань</h3>
 
                 <label for="training-progress" class="progress-label" id="progress-label">
-                    Виконано 2 із 4-х тренувань
+                    Виконано {{ completedWorkouts }} із {{ workoutGoal }} тренувань
                 </label>
 
                 <progress
                     id="training-progress"
                     class="progress-bar"
-                    value="2"
-                    max="4"
+                    :value="completedWorkouts"
+                    :max="workoutGoal"
                 >
-                    50%
+                    {{ progressPercent }}%
                 </progress>
 
                 <p class="progress-caption">
-                    План виконано на <strong id="progress-percent">50%</strong>.
+                    План виконано на <strong id="progress-percent">{{ progressPercent }}%</strong>.
                     Продовжуй у своєму темпі!
                 </p>
 
@@ -161,7 +155,7 @@
 
                 <p>
                     Найдовше тренування:
-                    <strong class="record-value">120 хв</strong>
+                    <strong class="record-value">{{ longestWorkout }} хв</strong>
                 </p>
             </section>
         </aside>

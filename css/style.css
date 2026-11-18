@@ -1,3 +1,4 @@
+
 *, *::before, *::after {
     box-sizing:border-box;
 }
@@ -15,6 +16,60 @@
 .extend-workout {
     margin-top: 14px;
     padding: 6px 12px;
+}
+
+form fieldset {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.workout-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.workout-actions button {
+    margin-top: 0;
+    padding: 6px 12px;
+}
+
+.delete-workout {
+    border-color: #ffb4a9;
+    background-color: transparent;
+    color: #ffb4a9;
+}
+
+.delete-workout:hover {
+    background-color: #4a2626;
+}
+
+.storage-status,
+.week-range {
+    color: #bdbdbd;
+}
+
+.weekly-stats {
+    margin: 24px 0 0;
+    padding-top: 20px;
+    border-top: 1px solid #777;
+}
+
+.weekly-stats label {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.weekly-stats input {
+    width: 100%;
+    min-width: 0;
+    padding: 8px;
+    border: 1px solid #777;
+    border-radius: 4px;
 }
 
 body {

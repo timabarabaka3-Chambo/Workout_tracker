@@ -6,6 +6,7 @@
     <title>Workout tracker</title>
     <link rel="stylesheet" href="css/style.css">
     <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.js" defer></script>
+    <script src="js/storage.js" defer></script>
     <script src="js/script.js" defer></script>
 </head>
 <body>
@@ -28,6 +29,7 @@
                 <h2>Додати тренування</h2> 
                 
                 <form id="workout-form" @submit.prevent="addWorkout" @input="formStatus = ''">
+                    <fieldset :disabled="!storageReady || storageBusy">
                         <p>
                             <label for="workout-date">Дата тренування:</label>
                             <input
@@ -86,19 +88,26 @@
                         </p>
 
                         <button type="submit">Додати тренування</button>
+                    </fieldset>
                         <p id="form-status" class="form-status" role="status">{{ formStatus }}</p>
                 </form>     
             </section>
 
             <section id="workout-history">
                 <h2>Історія тренувань</h2>
+                <p v-if="storageBusy" class="storage-status" role="status">Зачекайте, триває робота зі сховищем…</p>
+                <p v-if="storageError" class="field-error" role="alert">{{ storageError }}</p>
+                <button v-if="!storageReady && !storageBusy" type="button" @click="initializeStorage">Спробувати ще раз</button>
+                <p v-if="storageWarning" class="field-error" role="alert">{{ storageWarning }}</p>
+                <p v-if="storageStatus" class="storage-status" role="status">{{ storageStatus }}</p>
+                <p v-if="storageReady && !workouts.length">Тренувань поки немає. Додайте перше через форму.</p>
                 
                 <div class="cards" id="workouts-list">
                     <!-- Vue замінив ручне створення карток із практикуму №7. -->
                     <workout-row v-for="workout in workouts" :key="workout.id"
-                                 :id="workout.id" :type="workout.type" :minutes="workout.minutes"
+                                 :id="workout.id" :type="workout.type" :minutes="workout.duration"
                                  :calories="workout.calories" :icon="workout.icon" :date="workout.date"
-                                 @extend="extendWorkout"></workout-row>
+                                 :disabled="storageBusy" @extend="extendWorkout" @remove="removeWorkout"></workout-row>
                 </div>
             </section>
 
@@ -126,6 +135,14 @@
             <p>Кількість тренувань: <span class="stat-number" id="workouts-count">{{ workouts.length }}</span></p>
             <p>Загальний час: <span class="stat-number" id="total-minutes">{{ totalMinutes }}</span> хвилин</p>
             <p id="total-calories" class="calories-total" aria-live="polite">Спалено калорій: {{ totalCalories.toLocaleString('uk-UA', { maximumFractionDigits: 2 }) }} ккал</p>
+
+            <section class="weekly-stats">
+                <h3>Тривалість за тиждень</h3>
+                <label for="week-date">Оберіть будь-яку дату тижня:</label>
+                <input type="date" id="week-date" v-model="weekDate">
+                <p class="week-range">{{ weekLabel }}</p>
+                <p aria-live="polite">Разом: <strong id="weekly-minutes" class="stat-number">{{ weeklyMinutes }}</strong> хв</p>
+            </section>
 
             <section class="progress-section">
                 <h3>Прогрес тренувань</h3>

@@ -2,6 +2,21 @@
     box-sizing:border-box;
 }
 
+[v-cloak] {
+    display: none;
+}
+
+.workout-card .workout-rate {
+    margin-top: 10px;
+    color: #ffb347;
+    font-weight: 700;
+}
+
+.extend-workout {
+    margin-top: 14px;
+    padding: 6px 12px;
+}
+
 body {
     margin: 0;
     font-family: 'Times New Roman', Times, serif;

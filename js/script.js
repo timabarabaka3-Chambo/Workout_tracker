@@ -4,6 +4,11 @@
 // Ручний renderWorkouts із практикуму №7 замінено компонентом WorkoutRow та v-for.
 const API_URL = 'https://jsonplaceholder.typicode.com/todos?userId=4';
 
+// Локальна календарна дата без зсуву через UTC.
+function localDateString(date) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
 const WorkoutRow = {
     name: 'WorkoutRow',
     props: {
@@ -12,9 +17,10 @@ const WorkoutRow = {
         minutes: { type: Number, required: true },
         calories: { type: Number, required: true },
         icon: { type: String, default: '' },
-        date: { type: String, default: '' }
+        date: { type: String, default: '' },
+        disabled: { type: Boolean, default: false }
     },
-    emits: ['extend'],
+    emits: ['extend', 'remove'],
     computed: {
         // Похідне значення залежить лише від props, окремо у стані не зберігається.
         caloriesPerMinute() {
@@ -41,8 +47,12 @@ const WorkoutRow = {
             <p class="workout-rate" aria-live="polite">Калорії за хвилину: {{ formattedRate }} ккал/хв</p>
             <p class="workout-duration-label">{{ isLong ? 'Довге тренування' : 'Коротке тренування' }}</p>
             <time v-if="date" :datetime="date">{{ formattedDate }}</time>
-            <button type="button" class="extend-workout" @click="$emit('extend', id)"
+            <div class="workout-actions">
+            <button type="button" class="extend-workout" :disabled="disabled" @click="$emit('extend', id)"
                     :aria-label="'Додати 5 хвилин до тренування «' + type + '»'">+5 хв</button>
+            <button type="button" class="delete-workout" :disabled="disabled" @click="$emit('remove', id)"
+                    :aria-label="'Видалити тренування «' + type + '»'">Видалити</button>
+            </div>
         </article>`
 };
 
@@ -51,11 +61,13 @@ Vue.createApp({
     components: { WorkoutRow },
     data() {
         return {
-            workouts: [
-                { id: 1, type: 'Жим лежачи', icon: '🏋️', date: '2026-09-13', minutes: 45, calories: 270 },
-                { id: 2, type: 'Пробіжка', icon: '🏃', date: '2026-09-14', minutes: 120, calories: 960 }
-            ],
-            nextWorkoutId: 3,
+            workouts: [],
+            storageReady: false,
+            storageBusy: false,
+            storageError: '',
+            storageWarning: '',
+            storageStatus: '',
+            weekDate: localDateString(new Date()),
             workoutTypes: [
                 { type: 'Жим лежачи', icon: '🏋️' },
                 { type: 'Присід зі штангою', icon: '🏋️' },
@@ -79,10 +91,34 @@ Vue.createApp({
             return this.workouts.reduce((total, workout) => total + workout.calories, 0);
         },
         totalMinutes() {
-            return this.workouts.reduce((total, workout) => total + workout.minutes, 0);
+            return this.workouts.reduce((total, workout) => total + workout.duration, 0);
         },
         longestWorkout() {
-            return this.workouts.reduce((longest, workout) => Math.max(longest, workout.minutes), 0);
+            return this.workouts.reduce((longest, workout) => Math.max(longest, workout.duration), 0);
+        },
+        // Тиждень: понеділок включно — наступний понеділок невключно.
+        weekBounds() {
+            if (!this.weekDate) return null;
+            const start = new Date(`${this.weekDate}T00:00:00Z`);
+            if (!Number.isFinite(start.getTime())) return null;
+            start.setUTCDate(start.getUTCDate() - (start.getUTCDay() + 6) % 7);
+            const end = new Date(start);
+            end.setUTCDate(end.getUTCDate() + 7);
+            const sunday = new Date(end);
+            sunday.setUTCDate(sunday.getUTCDate() - 1);
+            return { start: start.toISOString().slice(0, 10), end: end.toISOString().slice(0, 10),
+                sunday: sunday.toISOString().slice(0, 10) };
+        },
+        weeklyMinutes() {
+            if (!this.weekBounds) return 0;
+            return this.workouts
+                .filter(workout => workout.date >= this.weekBounds.start && workout.date < this.weekBounds.end)
+                .reduce((total, workout) => total + workout.duration, 0);
+        },
+        weekLabel() {
+            if (!this.weekBounds) return 'Оберіть дату для перегляду тижня.';
+            const format = value => value.split('-').reverse().join('.');
+            return `${format(this.weekBounds.start)} — ${format(this.weekBounds.sunday)}`;
         },
         completedWorkouts() {
             return Math.min(this.workouts.length, this.workoutGoal);
@@ -105,35 +141,82 @@ Vue.createApp({
         }
     },
     methods: {
+        // Перший запуск: міграція; надалі джерелом списку є лише IndexedDB.
+        async initializeStorage() {
+            this.storageBusy = true;
+            this.storageError = '';
+            try {
+                await WorkoutStorage.openDB();
+                await WorkoutStorage.migrateFromLocalStorage([
+                    { id: 1, type: 'Жим лежачи', icon: '🏋️', date: '2026-09-13', duration: 45, calories: 270 },
+                    { id: 2, type: 'Пробіжка', icon: '🏃', date: '2026-09-14', duration: 120, calories: 960 }
+                ]);
+                await this.refreshStoredWorkouts();
+                this.storageReady = true;
+                this.storageStatus = 'Тренування зберігаються в цьому браузері.';
+            } catch (error) {
+                this.storageError = 'Не вдалося відкрити сховище тренувань. Перевірте, чи дозволено браузеру зберігати дані, закрийте інші вкладки трекера та спробуйте ще раз.';
+                console.error('Помилка відкриття IndexedDB:', error);
+            } finally {
+                this.storageBusy = false;
+            }
+        },
+        // Після кожної CRUD-операції перечитуємо базу та оновлюємо localStorage-копію.
+        async refreshStoredWorkouts() {
+            this.workouts = await WorkoutStorage.getAllItems();
+            WorkoutStorage.saveToLocalStorage(this.workouts);
+            this.storageWarning = WorkoutStorage.takeWarning();
+        },
+        async persistChange(operation, message) {
+            if (!this.storageReady || this.storageBusy) return false;
+            this.storageBusy = true;
+            this.storageError = '';
+            this.storageStatus = '';
+            try {
+                await operation();
+                await this.refreshStoredWorkouts();
+                this.storageStatus = message;
+                return true;
+            } catch (error) {
+                this.storageError = 'Не вдалося завершити збереження. Оновіть сторінку, щоб перевірити дані, перед повторною спробою.';
+                console.error('Помилка операції зі сховищем:', error);
+                return false;
+            } finally {
+                this.storageBusy = false;
+            }
+        },
         // Додає час і калорії пропорційно поточному темпу; Vue оновлює картку та статистику.
-        extendWorkout(id) {
+        async extendWorkout(id) {
             const workout = this.workouts.find(item => item.id === id);
-            if (!workout || workout.minutes <= 0) return;
-
-            const caloriesPerMinute = workout.calories / workout.minutes;
-            workout.minutes += 5;
+            if (!workout || workout.duration <= 0) return;
+            const duration = workout.duration + 5;
             // Округлюємо лише відображення, щоб повторні натискання не змінювали темп.
-            workout.calories = caloriesPerMinute * workout.minutes;
+            await this.persistChange(() => WorkoutStorage.updateItem({ ...workout, duration,
+                calories: workout.calories / workout.duration * duration }), 'Тривалість і калорії оновлено.');
+        },
+        async removeWorkout(id) {
+            await this.persistChange(() => WorkoutStorage.deleteItem(id), 'Тренування видалено.');
         },
         // Зберігаємо власну перевірку калорій із практикуму №8 через посилання Vue.
         validateCalories() {
             this.$refs.caloriesInput.setCustomValidity(this.caloriesError);
         },
         // .prevent у шаблоні скасовує перезавантаження; картки оновлюються реактивно.
-        addWorkout(event) {
+        async addWorkout(event) {
+            if (!this.storageReady || this.storageBusy) return;
             this.validateCalories();
             if (!event.target.reportValidity()) return;
 
             const selectedType = this.workoutTypes.find(item => item.type === this.draft.type);
             if (!selectedType) return;
-            this.workouts.push({
-                id: this.nextWorkoutId++,
+            const saved = await this.persistChange(() => WorkoutStorage.addItem({
                 type: selectedType.type,
                 icon: selectedType.icon,
                 date: this.draft.date,
-                minutes: Number(this.draft.minutes),
+                duration: Number(this.draft.minutes),
                 calories: Number(this.draft.calories)
-            });
+            }), 'Нове тренування збережено.');
+            if (!saved) return;
             this.formStatus = `Тренування «${selectedType.type}» додано.`;
             this.draft = { date: '', type: '', minutes: '', calories: '' };
             this.validateCalories();
@@ -169,6 +252,7 @@ Vue.createApp({
     },
     mounted() {
         console.log('script.js підключено, Vue керує трекером тренувань.');
+        this.initializeStorage();
         this.loadApiWorkouts();
     }
 }).mount('#app');

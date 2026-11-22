@@ -58,7 +58,7 @@ const WorkoutRow = {
 
 Vue.createApp({
     name: 'WorkoutApp',
-    components: { WorkoutRow },
+    components: { WorkoutRow, WeeklyWorkoutChart },
     data() {
         return {
             workouts: [],
@@ -109,11 +109,11 @@ Vue.createApp({
             return { start: start.toISOString().slice(0, 10), end: end.toISOString().slice(0, 10),
                 sunday: sunday.toISOString().slice(0, 10) };
         },
+        weeklyWorkoutDays() {
+            return buildWeeklyWorkoutDays(this.workouts, this.weekBounds?.start);
+        },
         weeklyMinutes() {
-            if (!this.weekBounds) return 0;
-            return this.workouts
-                .filter(workout => workout.date >= this.weekBounds.start && workout.date < this.weekBounds.end)
-                .reduce((total, workout) => total + workout.duration, 0);
+            return this.weeklyWorkoutDays.reduce((total, day) => total + day.minutes, 0);
         },
         weekLabel() {
             if (!this.weekBounds) return 'Оберіть дату для перегляду тижня.';
@@ -256,3 +256,4 @@ Vue.createApp({
         this.loadApiWorkouts();
     }
 }).mount('#app');
+

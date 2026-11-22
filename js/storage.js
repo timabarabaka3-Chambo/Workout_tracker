@@ -170,3 +170,4 @@ const WorkoutStorage = (() => {
     return { openDB, addItem, getAllItems, updateItem, deleteItem,
         saveToLocalStorage, loadFromLocalStorage, migrateFromLocalStorage, takeWarning };
 })();
+

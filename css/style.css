@@ -1,4 +1,5 @@
 
+
 *, *::before, *::after {
     box-sizing:border-box;
 }
@@ -498,4 +499,76 @@ form .form-status {
 button:disabled {
     opacity: 0.6;
     cursor: wait;
+}
+
+/* Практикум №12: адаптивний контейнер Canvas, кольори відповідають трекеру. */
+.chart-section {
+    margin: 28px 0 0;
+    padding-top: 24px;
+    border-top: 1px solid #666;
+}
+
+.chart-section > label {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.chart-section > input {
+    max-width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #777;
+    border-radius: 4px;
+}
+
+.chart-scroll {
+    overflow-x: auto;
+    background: #222;
+    border: 1px solid #666;
+    border-radius: 10px;
+}
+
+.weekly-chart canvas {
+    display: block;
+    width: 100%;
+    min-width: 520px;
+    height: auto;
+}
+
+.chart-hint {
+    color: #bdbdbd;
+}
+
+.chart-total strong {
+    color: #ffb347;
+}
+
+.chart-data {
+    margin-top: 16px;
+}
+
+.chart-data summary {
+    cursor: pointer;
+    color: #ffb347;
+}
+
+.chart-data table {
+    width: 100%;
+    margin-top: 12px;
+    border-collapse: collapse;
+}
+
+.chart-data th,
+.chart-data td {
+    padding: 8px;
+    border-bottom: 1px solid #555;
+    text-align: left;
+}
+
+.chart-data caption {
+    margin-bottom: 8px;
+    text-align: left;
+}
+
+.weekly-chart button:disabled {
+    cursor: default;
 }

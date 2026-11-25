@@ -1,5 +1,4 @@
 
-
 *, *::before, *::after {
     box-sizing:border-box;
 }
@@ -243,8 +242,19 @@ footer {
     gap: 12px;
 }
 
-.site-nav a {
+.site-nav a,
+#route-view a {
     color: #ff8c00;
+}
+
+.site-nav a[aria-current="page"] {
+    color: #fff;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+}
+
+.storage-feedback {
+    grid-column: 1 / -1;
 }
 
 
@@ -291,9 +301,11 @@ img {
         max-width: 1280px;
 
         
-        grid-template-columns: 3fr 1fr;
-
         gap: 32px;
+    }
+
+    .stats-layout {
+        grid-template-columns: 3fr 1fr;
     }
 
     .cards {
@@ -462,9 +474,7 @@ form .form-status {
 }
 
 #api-journal {
-    margin: 28px 0 0;
-    padding-top: 24px;
-    border-top: 1px solid #666666;
+    margin: 0;
 }
 
 .api-description,
@@ -503,9 +513,8 @@ button:disabled {
 
 /* Практикум №12: адаптивний контейнер Canvas, кольори відповідають трекеру. */
 .chart-section {
-    margin: 28px 0 0;
-    padding-top: 24px;
-    border-top: 1px solid #666;
+    min-width: 0;
+    margin: 0;
 }
 
 .chart-section > label {

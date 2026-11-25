@@ -18,7 +18,8 @@ const WorkoutRow = {
         calories: { type: Number, required: true },
         icon: { type: String, default: '' },
         date: { type: String, default: '' },
-        disabled: { type: Boolean, default: false }
+        disabled: { type: Boolean, default: false },
+        showDetailsLink: { type: Boolean, default: false }
     },
     emits: ['extend', 'remove'],
     computed: {
@@ -48,6 +49,8 @@ const WorkoutRow = {
             <p class="workout-duration-label">{{ isLong ? 'Довге тренування' : 'Коротке тренування' }}</p>
             <time v-if="date" :datetime="date">{{ formattedDate }}</time>
             <div class="workout-actions">
+            <a v-if="showDetailsLink" :href="'#/workouts/' + id" data-link
+               :aria-label="'Деталі тренування «' + type + '»'">Детальніше</a>
             <button type="button" class="extend-workout" :disabled="disabled" @click="$emit('extend', id)"
                     :aria-label="'Додати 5 хвилин до тренування «' + type + '»'">+5 хв</button>
             <button type="button" class="delete-workout" :disabled="disabled" @click="$emit('remove', id)"
@@ -61,6 +64,7 @@ Vue.createApp({
     components: { WorkoutRow, WeeklyWorkoutChart },
     data() {
         return {
+            route: currentView(),
             workouts: [],
             storageReady: false,
             storageBusy: false,
@@ -87,6 +91,12 @@ Vue.createApp({
         };
     },
     computed: {
+        selectedWorkout() {
+            return this.workouts.find(workout => String(workout.id) === this.route.id);
+        },
+        visibleWorkouts() {
+            return this.route.page === 'detail' ? (this.selectedWorkout ? [this.selectedWorkout] : []) : this.workouts;
+        },
         totalCalories() {
             return this.workouts.reduce((total, workout) => total + workout.calories, 0);
         },
@@ -141,6 +151,12 @@ Vue.createApp({
         }
     },
     methods: {
+        navigateByLink,
+        renderRoute() {
+            this.route = currentView();
+            document.title = this.route.title + ' — Трекер тренувань';
+            this.$nextTick(() => this.$refs.routeView.focus());
+        },
         // Перший запуск: міграція; надалі джерелом списку є лише IndexedDB.
         async initializeStorage() {
             this.storageBusy = true;
@@ -195,11 +211,12 @@ Vue.createApp({
                 calories: workout.calories / workout.duration * duration }), 'Тривалість і калорії оновлено.');
         },
         async removeWorkout(id) {
-            await this.persistChange(() => WorkoutStorage.deleteItem(id), 'Тренування видалено.');
+            const removed = await this.persistChange(() => WorkoutStorage.deleteItem(id), 'Тренування видалено.');
+            if (removed && this.route.page === 'detail' && this.route.id === String(id)) window.location.hash = '/';
         },
         // Зберігаємо власну перевірку калорій із практикуму №8 через посилання Vue.
         validateCalories() {
-            this.$refs.caloriesInput.setCustomValidity(this.caloriesError);
+            this.$refs.caloriesInput?.setCustomValidity(this.caloriesError);
         },
         // .prevent у шаблоні скасовує перезавантаження; картки оновлюються реактивно.
         async addWorkout(event) {
@@ -251,9 +268,13 @@ Vue.createApp({
         }
     },
     mounted() {
+        document.title = this.route.title + ' — Трекер тренувань';
+        window.addEventListener('hashchange', this.renderRoute);
         console.log('script.js підключено, Vue керує трекером тренувань.');
         this.initializeStorage();
         this.loadApiWorkouts();
+    },
+    beforeUnmount() {
+        window.removeEventListener('hashchange', this.renderRoute);
     }
 }).mount('#app');
-

@@ -8,26 +8,31 @@
     <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.js" defer></script>
     <script src="js/storage.js" defer></script>
     <script src="js/chart.js" defer></script>
+    <script src="js/router.js" defer></script>
     <script src="js/script.js" defer></script>
 </head>
 <body>
 
+    <div id="app" v-cloak @click="navigateByLink">
     <header class="site-header">
         <h1>Трекер тренувань</h1>
 
         <nav class="site-nav" aria-label="Основна навігація">
-            <a href="#add-workout">Додати тренування</a>
-            <a href="#workout-history">Історія тренувань</a>
-            <a href="#workout-chart">Діаграма тренувань</a>
-            <a href="#api-journal">Журнал вправ</a>
+            <a href="#/" data-link :aria-current="route.page === 'journal' ? 'page' : null">Журнал тренувань</a>
+            <a href="#/new" data-link :aria-current="route.page === 'form' ? 'page' : null">Додати тренування</a>
+            <a href="#/stats" data-link :aria-current="route.page === 'stats' ? 'page' : null">Статистика</a>
+            <a href="#/exercises" data-link :aria-current="route.page === 'api' ? 'page' : null">Журнал вправ з API</a>
         </nav>
     </header>
 
-    <div class="layout" id="app" v-cloak>
-
-        <main>
-
-            <section id = "add-workout">
+        <main id="route-view" ref="routeView" tabindex="-1" class="layout" :class="{ 'stats-layout': route.page === 'stats' }">
+            <div v-if="route.page !== 'api' && (storageBusy || storageError || storageWarning)" class="storage-feedback">
+                <p v-if="storageBusy" class="storage-status" role="status">Зачекайте, триває робота зі сховищем…</p>
+                <p v-if="storageError" class="field-error" role="alert">{{ storageError }}</p>
+                <button v-if="!storageReady && !storageBusy" type="button" @click="initializeStorage">Спробувати ще раз</button>
+                <p v-if="storageWarning" class="field-error" role="alert">{{ storageWarning }}</p>
+            </div>
+            <section v-if="route.page === 'form'" id="add-workout">
                 <h2>Додати тренування</h2> 
                 
                 <form id="workout-form" @submit.prevent="addWorkout" @input="formStatus = ''">
@@ -95,25 +100,27 @@
                 </form>     
             </section>
 
-            <section id="workout-history">
-                <h2>Історія тренувань</h2>
-                <p v-if="storageBusy" class="storage-status" role="status">Зачекайте, триває робота зі сховищем…</p>
-                <p v-if="storageError" class="field-error" role="alert">{{ storageError }}</p>
-                <button v-if="!storageReady && !storageBusy" type="button" @click="initializeStorage">Спробувати ще раз</button>
-                <p v-if="storageWarning" class="field-error" role="alert">{{ storageWarning }}</p>
+            <section v-if="route.page === 'journal' || (route.page === 'detail' && selectedWorkout)" id="workout-history">
+                <h2>{{ route.title }}</h2>
+                <a v-if="route.page === 'detail'" href="#/" data-link>← До журналу тренувань</a>
                 <p v-if="storageStatus" class="storage-status" role="status">{{ storageStatus }}</p>
-                <p v-if="storageReady && !workouts.length">Тренувань поки немає. Додайте перше через форму.</p>
+                <p v-if="storageReady && !workouts.length">Тренувань поки немає. <a href="#/new" data-link>Додати перше тренування</a></p>
                 
                 <div class="cards" id="workouts-list">
                     <!-- Vue замінив ручне створення карток із практикуму №7. -->
-                    <workout-row v-for="workout in workouts" :key="workout.id"
+                    <workout-row v-for="workout in visibleWorkouts" :key="workout.id" :show-details-link="route.page === 'journal'"
                                  :id="workout.id" :type="workout.type" :minutes="workout.duration"
                                  :calories="workout.calories" :icon="workout.icon" :date="workout.date"
                                  :disabled="storageBusy" @extend="extendWorkout" @remove="removeWorkout"></workout-row>
                 </div>
             </section>
 
-            <section id="workout-chart" class="chart-section">
+            <section v-if="route.page === 'missing' || (route.page === 'detail' && storageReady && !selectedWorkout)">
+                <h2>{{ route.page === 'detail' ? 'Тренування не знайдено' : 'Сторінку не знайдено' }}</h2>
+                <a href="#/" data-link>Повернутися до журналу тренувань</a>
+            </section>
+
+            <section v-if="route.page === 'stats'" id="workout-chart" class="chart-section">
                 <h2>Тренування за днями тижня</h2>
                 <label for="chart-week-date">Оберіть будь-яку дату тижня:</label>
                 <input type="date" id="chart-week-date" v-model="weekDate">
@@ -121,7 +128,7 @@
                 <weekly-workout-chart :days="weeklyWorkoutDays" :week-label="weekLabel"></weekly-workout-chart>
             </section>
 
-            <section id="api-journal">
+            <section v-if="route.page === 'api'" id="api-journal">
                 <h2>Журнал вправ з API</h2>
                 <p class="api-description">Навчальні записи з JSONPlaceholder: назва вправи та стан виконання.</p>
                 <button type="button" id="refresh-workouts" @click="loadApiWorkouts" :disabled="apiLoading">Оновити</button>
@@ -137,9 +144,7 @@
                     </article>
                 </div>
             </section>
-        </main>
-
-        <aside class="workout-stats">
+        <aside v-if="route.page === 'stats'" class="workout-stats">
             <h2>Статистика тренувань</h2>
 
             <p>Кількість тренувань: <span class="stat-number" id="workouts-count">{{ workouts.length }}</span></p>
@@ -148,8 +153,6 @@
 
             <section class="weekly-stats">
                 <h3>Тривалість за тиждень</h3>
-                <label for="week-date">Оберіть будь-яку дату тижня:</label>
-                <input type="date" id="week-date" v-model="weekDate">
                 <p class="week-range">{{ weekLabel }}</p>
                 <p aria-live="polite">Разом: <strong id="weekly-minutes" class="stat-number">{{ weeklyMinutes }}</strong> хв</p>
             </section>
@@ -186,7 +189,7 @@
                 </p>
             </section>
         </aside>
-
+        </main>
     </div>
 
     <footer>
@@ -195,4 +198,3 @@
     </footer>
 </body>
 </html>
-
